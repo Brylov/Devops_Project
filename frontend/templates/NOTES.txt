@@ -1,0 +1,21 @@
+{{- if .Values.ingress.enabled }}
+1. Get the Ingress IP:
+
+    NOTE: It may take a few minutes for the LoadBalancer IP to be available.
+          You can watch the status of by running 'kubectl get --namespace {{ .Release.Namespace }} svc -w {{ template "portfolio.fullname" . }}'
+
+  export SERVICE_IP=$(kubectl get svc --namespace {{ .Release.Namespace }} {{ template "portfolio.fullname" . }}-frontend -o jsonpath='{.status.loadBalancer.ingress[0].ip}')
+
+  echo "Visit http://$SERVICE_IP to access your application."
+
+{{- range .Values.ingress.hosts }}
+2. The frontend is accessible at:
+
+  http://{{ .host }}{{ (index .paths 0) | quote }}
+
+{{- end }}
+{{- else }}
+1. The frontend is accessible at:
+
+  http://127.0.0.1:{{ .Values.frontend.service.port }}
+{{- end }}

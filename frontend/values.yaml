@@ -1,0 +1,24 @@
+image:
+  pullPolicy: IfNotPresent
+  pullSecrets: aws-secret
+  frontend:
+    repository: 587447957359.dkr.ecr.us-east-1.amazonaws.com/portfolio-frontend
+    tag: "1.0.11"
+
+frontend:
+  replicas: 1
+  service:
+    type: NodePort
+    port: 80
+    name: frontend
+
+ingress:
+  enabled: true
+
+  hosts:
+    - host: frontend.local
+      paths:
+        - path: /
+          serviceName: frontend
+          servicePort: 80
+  tls: []

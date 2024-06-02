@@ -1,0 +1,45 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: frontend
+spec:
+  replicas: {{ .Values.frontend.replicas }}
+  selector:
+    matchLabels:
+      app: frontend
+  template:
+    metadata:
+      labels:
+        app: frontend
+    spec:
+      imagePullSecrets:
+      - name: {{ .Values.image.pullSecrets }}
+      initContainers:
+      - name: wait-for-backend
+        image: darthcabs/tiny-tools:1
+        command:
+        - /bin/bash
+        - -c
+        - >
+          set -x;
+          while [[ "$(curl -s -o /dev/null -w ''%{http_code}'' http://backend:5000/api/last_words)" != "200" ]]; do 
+            echo '.';
+            sleep 2;
+          done;
+      containers:
+      - name: frontend
+        image: "{{ .Values.image.frontend.repository }}:{{ .Values.image.frontend.tag }}"
+        imagePullPolicy: {{ .Values.image.pullPolicy }}
+        ports:
+        - containerPort: {{ .Values.frontend.service.port }}
+        env:
+        - name: API_URL
+          value: {{ .Values.frontend.API_URL }}
+        volumeMounts:
+        - name: nginx-config-volume
+          mountPath: /etc/nginx/nginx.conf
+          subPath: nginx.conf
+      volumes:
+      - name: nginx-config-volume
+        configMap:
+          name: nginx-config
